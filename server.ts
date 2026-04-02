@@ -57,25 +57,32 @@ const port = envNumber("GAMES_PORT", 8006);
 
 const games = [
   {
+    id: "flappy-sky",
+    title: "Flappy Sky",
+    summary: "Thread a tiny bird through pastel towers and hold a streak above 10.",
+    reward: 65,
+    solveScore: 10,
+  },
+  {
     id: "ice-fishing",
     title: "Ice Fishing",
     summary: "Click to the rhythm and catch fish under neon ice.",
     reward: 35,
-    hint: "The plaza likes players who read hidden notes.",
+    solveScore: 60,
   },
   {
     id: "cart-dash",
     title: "Cart Dash",
     summary: "A popcorn cart races through the arcade.",
     reward: 50,
-    hint: env("HINT_GAMES_CHAIN", "chain starts in notes"),
+    solveScore: 60,
   },
   {
     id: "emoji-burst",
     title: "Emoji Burst",
     summary: "Assemble the correct reaction sequence.",
     reward: 20,
-    hint: "Sometimes internal services are not hidden as well as they seem.",
+    solveScore: 60,
   },
 ];
 
@@ -101,14 +108,16 @@ Deno.serve({ port }, async (request) => {
     if (!game) return json({ ok: false, error: "No game." }, { status: 404 });
     const payload = await request.json().catch(() => ({}));
     const score = Math.max(0, Math.min(100, Number(payload.score ?? 0)));
-    const reward = score >= 60 ? game.reward : Math.round(game.reward / 2);
+    const solved = score >= Number(game.solveScore ?? 60);
+    const reward = solved ? game.reward : Math.round(game.reward / 2);
     return json({
       ok: true,
       gameId,
       score,
       reward,
-      solved: score >= 60,
-      hint: score >= 60 ? game.hint : "Score 60+ points to unlock the hint.",
+      solved,
+      milestone: score >= 10,
+      message: solved ? "Run cleared." : "Keep pushing for a cleaner run.",
     });
   }
 
